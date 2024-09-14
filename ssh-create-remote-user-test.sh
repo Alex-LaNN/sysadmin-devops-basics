@@ -1,39 +1,40 @@
 #!/usr/bin/bash
 
-# Скрипт для создания удалённого пользователя на сервере с настройкой SSH-доступа и добавлением в выбранную группу (users или admin).
-# Скрипт принимает 4 аргумента: 
-# 1. Имя текущего пользователя с правами sudo (например, root или user)
-# 2. IP-адрес сервера
-# 3. Имя нового пользователя, которого необходимо создать
-# 4. Публичный SSH-ключ для нового пользователя
-#
-# Скрипт проверяет существование пользователя и группы, создает директорию .ssh, добавляет публичный ключ и устанавливает необходимые права доступа.
-# В случае, если группа не существует, она будет создана.
-# Если публичный ключ уже существует, повторное добавление будет пропущено.
+# Script for creating a remote user on the server with SSH access settings and adding to the selected group (users or admin).
+# The script takes 4 arguments:
 
-# Проверка на наличие необходимых аргументов
+# 1. The name of the current user with sudo rights (for example, root or user)
+# 2. The IP address of the server
+# 3. The name of the new user to create
+# 4. The public SSH key for the new user
+#
+# The script checks the existence of the user and group, creates the .ssh directory, adds the public key and sets the necessary access rights.
+# If the group does not exist, it will be created.
+# If the public key already exists, re-adding will be skipped.
+
+# Check for required arguments
 if [ "$#" -ne 4 ]; then
   echo "Usage: $0 <current_user> <server_ip> <new_user> <public_key>"
   exit 1
 fi
 
-# Переменные, полученные из аргументов
-CURRENT_USER=$1         # текущий пользователь (например user или root)
-SERVER_IP=$2            # IP-адрес сервера (например 44.208.164.98)
-NEW_USER=$3             # имя нового пользователя (например user1)
-PUBLIC_KEY=$4           # публичный ключ SSH
+# Variables obtained from arguments
+CURRENT_USER=$1      # current user running the script (e.g. user or root)
+SERVER_IP=$2         # server IP address (e.g. 44.208.164.98)
+NEW_USER=$3          # name of new user being added to server (e.g. user1)
+PUBLIC_KEY=$4        # public SSH key for new user
 
-# Путь к приватному ключу
+# Path to private key
 KEY_PATH="/home/alex/aws_server/ubuntu_server.pem"
 
-# Запрос пароля
-echo -n "Введите пароль для sudo: "
+# Password request
+echo -n "Enter password for sudo: "
 read -s PASSWORD
 echo
 
-# Запрос группы для нового пользователя
+# Request a group for a new user
 while true; do
-  echo -n "Введите 'u' для добавления в группу users или 'a' для добавления в группу admin: "
+  echo -n "Enter 'u' to add to the users group or 'a' to add to the admin group: "
   read GROUP_CHOICE
 
   if [ "$GROUP_CHOICE" = "u" ]; then
@@ -43,88 +44,88 @@ while true; do
     USER_GROUP="admin"
     break
   else
-    echo "Неверный ввод. Будет выбрана группа по умолчанию - 'users'"
+    echo "Invalid input. The default group 'users' will be selected."
     USER_GROUP="users"
   fi
 done
 
-# Проверка прав доступа к приватному ключу
+# Checking access rights to a private key
 if [ ! -f "$KEY_PATH" ]; then
-  echo "Ошибка: Файл приватного ключа не найден: $KEY_PATH"
+  echo "Error: Private key file not found: $KEY_PATH"
   exit 1
 fi
 
 if [ "$(stat -c %a "$KEY_PATH")" != "400" ]; then
-  echo "Ошибка: Неправильные права доступа к файлу ключа. Установите права 400."
+  echo "Error: Incorrect key file permissions. Set permissions to 400."
   exit 1
 fi
 
-# Подключение к серверу и выполнение команд
+# Connecting to the server and executing commands
 ssh -i "$KEY_PATH" -t "$CURRENT_USER@$SERVER_IP" << EOF
 echo "$PASSWORD" | sudo -S -v
 
-# Проверка существования пользователя
+# Checking user existence
 if id "$NEW_USER" &>/dev/null; then
-  echo "Пользователь $NEW_USER уже существует. Выберите другое имя."
-  #exit 1
+  echo "User $NEW_USER already exists. Please choose a different name."
+  exit 1
 else
-  # Проверка наличия группы
+  # Checking for group presence
   if ! getent group "$USER_GROUP" > /dev/null 2>&1; then
-    # Создание группы
+    # Create a group
     echo "$PASSWORD" | sudo -S groupadd "$USER_GROUP"
-    echo "Группа '$USER_GROUP' создана..."
+    echo "Group '$USER_GROUP' created..."
   else
-    echo "Группа '$USER_GROUP' уже существует..."
+    echo "Group '$USER_GROUP' already exists..."
   fi
 
-  # Создание нового пользователя и добавление его в группу '$USER_GROUP'
+  # Create a new user and add it to a group '$USER_GROUP'
   echo "$PASSWORD" | sudo -S adduser --disabled-password --gecos "" --ingroup "$USER_GROUP" "$NEW_USER"
-  echo "Пользователь $NEW_USER создан и добавлен в группу '$USER_GROUP'..."
+  echo "User $NEW_USER created and added to group '$USER_GROUP'..."
 fi
 
-# Проверка существования директории '.ssh'
+# Checking directory existence '.ssh'
 if [ ! -d "/home/$NEW_USER/.ssh" ]; then
-  # Создание директории '.ssh' и установка прав
+  # Create '.ssh' directory and set permissions
   echo "$PASSWORD" | sudo -S mkdir -p /home/$NEW_USER/.ssh
   echo "$PASSWORD" | sudo -S chmod 700 /home/$NEW_USER/.ssh
-  echo "Директория /home/$NEW_USER/.ssh создана..."
+  echo "Directory /home/$NEW_USER/.ssh created..."
 else
-  echo "Директория /home/$NEW_USER/.ssh уже существует..."
+  echo "Directory /home/$NEW_USER/.ssh already exists..."
 fi
 
-# Проверка наличия публичного ключа
+# Checking for the presence of a public key
 if ! grep -Fq "$PUBLIC_KEY" /home/$NEW_USER/.ssh/authorized_keys 2>/dev/null; then
-  # Добавление публичного ключа
+  # Adding a public key
   echo "$PUBLIC_KEY" | sudo tee -a /home/$NEW_USER/.ssh/authorized_keys > /dev/null
   echo "$PASSWORD" | sudo -S chmod 600 /home/$NEW_USER/.ssh/authorized_keys
-  echo "Публичный ключ добавлен для пользователя $NEW_USER..."
+  echo "Public key added for user $NEW_USER..."
 else
-  echo "Публичный ключ для пользователя $NEW_USER уже существует..."
+  echo "Public key for user $NEW_USER already exists..."
 fi
 
-# Установка правильных прав для директории '.ssh' и файла 'authorized_keys'
+# Setting correct permissions for the '.ssh' directory and the 'authorized_keys' file
 echo "$PASSWORD" | sudo -S chown -R "$NEW_USER:$USER_GROUP" /home/$NEW_USER/.ssh
 
-# Проверка создания пользователя
-MAX_RETRIES=6    # Максимальное количество попыток
-RETRY_INTERVAL=90 # Интервал между попытками
+# Checking user creation
+MAX_RETRIES=6       # Maximum number of attempts
+RETRY_INTERVAL=90   # Interval between attempts
 
 for ((i=1; i<=MAX_RETRIES; i++)); do
   if id "$NEW_USER" &>/dev/null; then
-    echo "Пользователь $NEW_USER успешно создан."
+    echo "User $NEW_USER has been successfully created."
     break
   else
-    echo "Пользователь $NEW_USER еще не создан. Ожидание..."
+    echo "User $NEW_USER has not been created yet. Waiting..."
     sleep $RETRY_INTERVAL
   fi
 done
 
-# Если после всех попыток пользователь не был создан, выдаем ошибку
+# If after all attempts the user has not been created, an error is returned
 if ! id "$NEW_USER" &>/dev/null; then
-  echo "Ошибка: не удалось создать пользователя $NEW_USER."
+  echo "Error: Failed to create user $NEW_USER."
   exit 1
 fi
 
 EOF
 
-echo "Процесс создания нового пользователя $NEW_USER завершен."
+echo "The process of creating a new user $NEW_USER is complete."
