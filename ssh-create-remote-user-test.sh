@@ -12,6 +12,9 @@
 # If the group does not exist, it will be created.
 # If the public key already exists, re-adding will be skipped.
 
+# Usage example:
+# ./ssh-create-remote-user-test.sh root 44.208.164.98 user1 'ssh-rsa AAAAB3Nza...'
+
 # Check for required arguments
 if [ "$#" -ne 4 ]; then
   echo "Usage: $0 <current_user> <server_ip> <new_user> <public_key>"
