@@ -4,7 +4,7 @@
 # The script takes 4 arguments:
 
 # 1. The name of the current user with sudo rights (for example, root or user)
-# 2. The IP address of the server
+# 2. The Public IPv4 address of the server
 # 3. The name of the new user to create
 # 4. The public SSH key for the new user
 #

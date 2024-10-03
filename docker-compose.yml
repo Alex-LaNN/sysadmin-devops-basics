@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  nginx:
+    container_name: swapi_nginx
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/conf:/etc/nginx/conf.d
+      - ./docker/nginx/html:/usr/share/nginx/html
+      - /etc/letsencrypt:/etc/letsencrypt
+    networks:
+      - swapi_network
+    depends_on:
+      - app
+    restart: always
+
+  mysql:
+    container_name: swapi_mysql
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    networks:
+      - swapi_network
+    restart: always
+
+  app:
+    container_name: swapi_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules  # To avoid overwriting the folder with installed dependencies
+    env_file:
+      - .env
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    networks:
+      - swapi_network
+    depends_on:
+      - mysql
+    restart: always
+
+networks:
+  swapi_network:
+    driver: bridge
