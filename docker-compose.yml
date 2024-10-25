@@ -5,10 +5,10 @@ services:
     container_name: swapi_nginx
     image: nginx:latest
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
-      - ./docker/nginx/conf:/etc/nginx/conf.d
+      - ./docker/nginx/conf/my_domain.conf:/etc/nginx/conf.d/default.conf
       - ./docker/nginx/html:/usr/share/nginx/html
       - /etc/letsencrypt:/etc/letsencrypt
     networks:
@@ -38,12 +38,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /usr/src/app
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules  # To avoid overwriting the folder with installed dependencies
-    env_file:
-      - .env
+    working_dir: /usr/src
     ports:
       - "${APP_PORT}:${APP_PORT}"
     networks:

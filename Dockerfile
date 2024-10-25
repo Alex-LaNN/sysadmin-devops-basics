@@ -2,16 +2,19 @@
 FROM node:20-alpine
 
 # Working directory inside the container
-WORKDIR /usr/src/app
+WORKDIR /usr/src
 
 # Copying package.json and package-lock.json to install dependencies
 COPY package*.json ./
 
-# Install Dependencies
-RUN npm install
+# Install and update all Dependencies
+RUN npm install -g npm-check-updates @nestjs/cli && ncu -u && npm install
 
 # Copying the rest of the application code
 COPY . .
+
+# Copy the file with environment variables for production to the image
+COPY .env.production ./.env
 
 # Assembly of the project
 RUN npm run build
