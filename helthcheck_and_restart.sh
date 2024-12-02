@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+# The script is used in one of the steps of Teamcity on the `full_app_server` server.
+
 #exec 1>> /var/log/health-check.log 2>&1  # сначала проверить права на запись в файл  !!!!!!!!!
 
 # Specifying Settings
