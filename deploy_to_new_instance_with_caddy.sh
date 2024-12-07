@@ -95,11 +95,6 @@ clone_repository() {
 }
 
 # Step 3: User Management
-log "=== User Management ==="
-# Execute the 'create_new_user.sh' script to create a new user if needed
-sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
-
-# Step 3: User Management
 manage_users() {
   log "=== User Management ==="
   # Checking for the presence of a user creation script
@@ -153,7 +148,7 @@ main() {
   > "$LOGFILE"
   
   log "=== Starting deployment process ==="
-  
+
   manage_packages
   clone_repository
   manage_users
