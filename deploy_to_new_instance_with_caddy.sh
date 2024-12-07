@@ -36,88 +36,137 @@
 #
 # Author: Alex-LaNN
 
-CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
-FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
+set -e  # Остановка при первой ошибке
+set -o pipefail  # Улучшенная обработка ошибок в pipe
 
-# Checking for the existence of the file 'config.sh'
-if [ ! -f "./config.sh" ]; then
-  echo "Uploading file 'config.sh' ..."
-  sudo wget -O config.sh "$CONFIGLINK" || { echo "Error: Failed to load 'config.sh'"; exit 1; }
-fi
+download_config_files() {
+  local CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
+  local FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
 
-# Checking for the existence of the file 'functions.sh'
-if [ ! -f "./functions.sh" ]; then
-  echo "Uploading file 'functions.sh' ..."
-  sudo wget -O functions.sh "$FUNCTIONSLINK" || { echo "Error: Failed to load 'functions.sh'"; exit 1; }
-fi
+  # Проверка и загрузка config.sh
+  if [ ! -f "./config.sh" ]; then
+    log "Uploading file 'config.sh' ..."
+    sudo wget -O config.sh "$CONFIGLINK" || error_exit "Failed to load 'config.sh'"
+  fi
 
-# Connecting files with configuration and functions
-echo "Connecting 'config.sh' and 'functions.sh' files..."
-source ./config.sh || { echo "Error: Failed to connect 'config.sh'"; exit 1; }
-source ./functions.sh || { echo "Error: Failed to connect 'functions.sh'"; exit 1; }
+  # Проверка и загрузка functions.sh
+  if [ ! -f "./functions.sh" ]; then
+    log "Uploading file 'functions.sh' ..."
+    sudo wget -O functions.sh "$FUNCTIONSLINK" || error_exit "Failed to load 'functions.sh'"
+  fi
 
-log "The files 'config.sh' and 'functions.sh' are connected successfully."
+  # Подключение файлов
+  source ./config.sh || error_exit "Failed to connect 'config.sh'"
+  source ./functions.sh || error_exit "Failed to connect 'functions.sh'"
+
+  log "Configuration files connected successfully."
+}
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
 log "=== Starting deployment process ==="
 
 # Step 1: Initial instance preparation
-log "=== Packages Management ==="
-# List of packages to check
-packages=("curl" "git" "wget" "software-properties-common" "ufw")
+manage_packages() {
+  log "=== Packages Management ==="
+  
+  log "Updating package list..."
+  # Update system package list and upgrade installed packages
+  sudo apt update && sudo apt upgrade -y || error_exit "Unable to update system."
 
-log "Updating package list..."
-# Update system package list and upgrade installed packages
-sudo apt update && sudo apt upgrade -y | tee -a "$LOGFILE" || error_exit "Unable to update system."
+  # Check and install missing packages
+  for pkg in "${PACKAGES[@]}"; do
+    if ! dpkg -l | grep -qw "$pkg"; then
+      log "Package '$pkg' not found. Installing..."
+      sudo apt install -y "$pkg" || log "Error installing package '$pkg'. Continuing..."
+    else
+      log "Package '$pkg' is already installed."
+    fi
+  done
+}
 
-# Check and install missing packages
-for pkg in "${packages[@]}"; do
-  if ! dpkg -l | grep -qw "$pkg"; then
-    log "Package '$pkg' not found. Installing..."
-    # Install package if not found
-    sudo apt install -y "$pkg" | tee -a "$LOGFILE" || log "Error installing package '$pkg'. Continuing..."
-    log "Ok."
-  else
-    log "Package '$pkg' is already installed."
-  fi
-done
+# Step 2: Clone the repository
+clone_repository() {
+  log "=== Repository Management ==="
+  # Load the cloning script
+  sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh 
+  
+  # Perform cloning
+  sudo ./clone_repository.sh || error_exit "Failed to clone repository"
 
-# Step 2: Cloning the repository
-log "=== Repository Management ==="
-# Download and execute the 'clone_repository.sh' script to clone the repository
-sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh && sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
-
-# Checking the existence of the project directory and moving to it
-if [ -d "$PROJECTDIR" ]; then
-    cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
-else
-    error_exit "Directory $PROJECTDIR does not exist"
-fi
+  # Go to the project directory
+  cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
+}
 
 # Step 3: User Management
 log "=== User Management ==="
 # Execute the 'create_new_user.sh' script to create a new user if needed
 sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
 
+# Step 3: User Management
+manage_users() {
+  log "=== User Management ==="
+  # Checking for the presence of a user creation script
+  if [ -f "./create_new_user.sh" ]; then
+    # Running the user creation script with a flag that prevents recursion
+    # export SKIP_RECURSIVE_DEPLOY=1
+    sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
+  else
+    log "User creation script not found."
+  fi
+}
+
 # Step 4: Docker Management
-log "=== Docker Management ==="
-# Execute the 'docker_instalation.sh' script to install Docker if necessary
-sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
+setup_docker() {
+  log "=== Docker Management ==="
+  if [ -f "./docker_instalation.sh" ]; then
+    sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
+  else
+    log "Docker installation script not found."
+  fi
+}
 
 # Step 5: Environment Management
-log "=== Environment Management ==="
-# Execute the 'environmental_preparation.sh' script to handle the .env file and permissions
-sudo ./environmental_preparation.sh || error_exit "Failed to execute environmental_preparation.sh"
+prepare_environment() {
+  log "=== Environment Management ==="
+  if [ -f "./environmental_preparation.sh" ]; then
+    sudo ./environmental_preparation.sh || error_exit "Failed to execute environmental_preparation.sh"
+  else
+    log "Environment preparation script not found."
+  fi
+}
 
 # Step 6: Start Docker Compose
-log "Starting Docker Compose..."
-# Use Docker Compose to build and run the application using the specified .env.production file and Caddy configuration
-sudo --preserve-env docker-compose --env-file .env.production -f docker-compose.prod.caddy.yml up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
+start_docker_compose() {
+  log "Starting Docker Compose..."
+  sudo --preserve-env docker-compose --env-file .env.production -f docker-compose.prod.caddy.yml up -d --build || error_exit "Failed to start Docker Compose."
+}
 
 # Step 7: Check running containers
-log "Checking running containers..."
-# Check and log the list of running Docker containers
-sudo docker ps | tee -a "$LOGFILE" || error_exit "Failed to check running containers."
+check_containers() {
+  log "Checking running containers..."
+  sudo docker ps || error_exit "Failed to check running containers."
+}
 
-log "=== Deployment completed ==="
+# Main deployment function
+main() {
+  # Clearing the log file
+  > "$LOGFILE"
+  
+  log "=== Starting deployment process ==="
+  
+  # Sequential launch of stages
+  download_config_files
+  manage_packages
+  clone_repository
+  manage_users
+  setup_docker
+  prepare_environment
+  start_docker_compose
+  check_containers
+  
+  log "=== Deployment completed ==="
+}
+
+# Running the main function
+main

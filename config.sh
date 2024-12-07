@@ -13,6 +13,7 @@
 # - PROJECTDIR: Stores the project directory.
 # - REPOLINK: URL link to the Git repository.
 # - SCRIPTOLINK: URL link to the repository clone script.
+# - PACKAGES: List of packages to check.
 # - USERS_LIST: List of users to manage during deployment.
 #
 # Notes:
@@ -35,6 +36,9 @@ REPOLINK="https://github.com/Alex-LaNN/NestJS-backend.git"
 
 # SCRIPTOLINK: Set the URL link to the script for cloning the repository.
 SCRIPTOLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/clone_repository.sh"
+
+# PACKAGES: List of packages to check
+PACKAGES=("curl" "git" "wget" "software-properties-common" "ufw")
 
 # USERS_LIST: Define the list of users to manage (used for creating and managing permissions).
 USERS_LIST=("ubuntu")

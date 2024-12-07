@@ -33,6 +33,12 @@
 source ./config.sh
 source ./functions.sh
 
+# # Prevent recursive deployment
+# if [[ -n "$SKIP_RECURSIVE_DEPLOY" ]]; then
+#     log "Recursive user creation skipped as SKIP_RECURSIVE_DEPLOY is set."
+#     exit 0
+# fi
+
 # Request to add a new user
 read -p "Do you want to add a new user to the server? Enter 'y' to confirm: " add_user
 
