@@ -36,9 +36,27 @@
 #
 # Author: Alex-LaNN
 
-# Source for accessing shared constants and functions
-source ./config.sh
-source ./functions.sh
+CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
+FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
+
+# Checking for the existence of the file 'config.sh'
+if [ ! -f "./config.sh" ]; then
+  echo "Uploading file 'config.sh' ..."
+  sudo wget -O config.sh "$CONFIGLINK" || { echo "Error: Failed to load 'config.sh'"; exit 1; }
+fi
+
+# Checking for the existence of the file 'functions.sh'
+if [ ! -f "./functions.sh" ]; then
+  echo "Uploading file 'functions.sh' ..."
+  sudo wget -O functions.sh "$FUNCTIONSLINK" || { echo "Error: Failed to load 'functions.sh'"; exit 1; }
+fi
+
+# Connecting files with configuration and functions
+echo "Connecting 'config.sh' and 'functions.sh' files..."
+source ./config.sh || { echo "Error: Failed to connect 'config.sh'"; exit 1; }
+source ./functions.sh || { echo "Error: Failed to connect 'functions.sh'"; exit 1; }
+
+log "The files 'config.sh' and 'functions.sh' are connected successfully."
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
