@@ -91,17 +91,17 @@ sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh && sudo ./clone_re
 # Step 3: User Management
 log "=== User Management ==="
 # Execute the 'create_new_user.sh' script to create a new user if needed
-sudo ./create_new_user.sh "$HOMEDIR" "$LOGFILE" || error_exit "Failed to execute create_new_user.sh"
+sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
 
 # Step 4: Docker Management
 log "=== Docker Management ==="
 # Execute the 'docker_instalation.sh' script to install Docker if necessary
-sudo ./docker_instalation.sh "$LOGFILE" || error_exit "Failed to execute docker_instalation.sh"
+sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
 
 # Step 5: Environment Management
 log "=== Environment Management ==="
 # Execute the 'environmental_preparation.sh' script to handle the .env file and permissions
-sudo ./environmental_preparation.sh "$HOMEDIR" "$LOGFILE" || error_exit "Failed to execute environmental_preparation.sh"
+sudo ./environmental_preparation.sh || error_exit "Failed to execute environmental_preparation.sh"
 
 # Step 6: Start Docker Compose
 log "Starting Docker Compose..."
