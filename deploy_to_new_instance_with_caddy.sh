@@ -62,10 +62,6 @@ download_config_files() {
   log "Configuration files connected successfully."
 }
 
-# Clear the log file at the start of the script
-> "$LOGFILE"
-log "=== Starting deployment process ==="
-
 # Step 1: Initial instance preparation
 manage_packages() {
   log "=== Packages Management ==="
@@ -150,13 +146,14 @@ check_containers() {
 
 # Main deployment function
 main() {
+  # Sequential launch of stages
+  download_config_files
+
   # Clearing the log file
   > "$LOGFILE"
   
   log "=== Starting deployment process ==="
   
-  # Sequential launch of stages
-  download_config_files
   manage_packages
   clone_repository
   manage_users
