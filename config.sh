@@ -10,6 +10,7 @@
 # - HOMEDIR: Stores the home working directory.
 # - LOGFILE: Path to the log file for deployment progress and errors.
 # - REPOSITORY: Name of the repository being deployed.
+# - PROJECTDIR: Stores the project directory.
 # - REPOLINK: URL link to the Git repository.
 # - SCRIPTOLINK: URL link to the repository clone script.
 # - USERS_LIST: List of users to manage during deployment.
@@ -25,6 +26,9 @@ LOGFILE="$HOMEDIR/start_deploy_with_caddy.log"
 
 # REPOSITORY: Define the name of the repository to be cloned and deployed.
 REPOSITORY="NestJS-backend"
+
+# Path to the project directory
+PROJECTDIR="$HOMEDIR/$REPOSITORY"
 
 # REPOLINK: Set the link to the Git repository for cloning.
 REPOLINK="https://github.com/Alex-LaNN/NestJS-backend.git"

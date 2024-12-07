@@ -88,6 +88,13 @@ log "=== Repository Management ==="
 # Download and execute the 'clone_repository.sh' script to clone the repository
 sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh && sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
 
+# Checking the existence of the project directory and moving to it
+if [ -d "$PROJECTDIR" ]; then
+    cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
+else
+    error_exit "Directory $PROJECTDIR does not exist"
+fi
+
 # Step 3: User Management
 log "=== User Management ==="
 # Execute the 'create_new_user.sh' script to create a new user if needed
