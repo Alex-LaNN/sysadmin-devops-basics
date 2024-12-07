@@ -1,61 +1,52 @@
 #!/usr/bin/bash
 
-# Script for cloning a GitHub repository and preparing project scripts
+# Script to clone a repository from GitHub and set executable permissions for project files
 #
 # This script performs the following actions:
-# 1. Verifies that a log file path is provided as an argument.
-# 2. Clones a specified GitHub repository if it does not already exist locally.
-# 3. Sets executable permissions for all `.sh` files located in the project root.
+# 1. Loads configuration variables and functions from external config.sh and functions.sh files.
+# 2. Checks if the repository directory exists. If not, it creates the directory and clones the repository from the provided link.
+# 3. After cloning the repository, the script sets all .sh files in the project root folder to be executable, except for config.sh and functions.sh.
+# 4. If actions are successful, the script logs the information to a log file. In case of errors, it exits and logs an error message.
 #
 # Requirements:
-# - Must be run with superuser privileges.
-# - Expects an existing logging mechanism via `log` and `error_exit` functions,
-#   which are sourced from another script (`deploy_to_new_instance_with_caddy.sh`).
+# - The REPOSITORY and REPOLINK variables should be defined in the config.sh file for proper script operation.
+# - The script must be executed by a user with permission to create directories and write to the log file.
+# - Git must be installed to clone the repository.
 #
-# Usage:
-# ./<script_name> <LOGFILE>
-# Replace `<LOGFILE>` with the path to the log file where the output should be stored.
-#
-# Example:
-# ./clone_and_prepare_repo.sh /var/log/repo_setup.log
+# Example usage:
+# sudo ./clone_repositoty.sh
 #
 # Notes:
-# - The repository name and link are hardcoded as variables (`NestJS-backend` and its GitHub URL).
-# - If the repository already exists, the cloning step is skipped.
-# - Executable permissions are applied only to `.sh` files in the project root directory.
-# - Ensure this script is executed with adequate permissions and that the sourced script is present.
+# - If the repository already exists, cloning will be skipped, and the script will simply navigate to the repository directory.
+# - All .sh files in the root of the repository will be made executable, except for config.sh and functions.sh.
+#
+# Expected files:
+# - config.sh with necessary variables (e.g., REPOSITORY and REPOLINK).
+# - functions.sh with functions for logging and error handling.
+#
+# The script logs successful operations and error messages to a log file.
 
-# Source the main script to access functions like log and error_exit
-source ./deploy_to_new_instance_with_caddy.sh
-
-# Checking the argument passing
-if [ -z "$1" ]; then
-    echo "Error: File 'LOGFILE' not provided."
-    exit 1
-fi
-
-# Getting LOGFILE value from argument
-LOGFILE=$1
-# Setting the repository name
-REPOSITORY="NestJS-backend"
-# Setting a link to the repository
-REPOLINK="https://github.com/Alex-LaNN/NestJS-backend.git"
+# Source for accessing shared constants and functions
+source ./config.sh
+source ./functions.sh
 
 log "Cloning repository from GitHub..."
 if [ ! -d "$REPOSITORY" ]; then
+    # Create the repository directory if it doesn't exist and clone the repository
     sudo mkdir "$REPOSITORY" && cd "$REPOSITORY"
     git clone "$REPOLINK" | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
 
     log "Making .sh files in the project root executable..."
     # Search for files with the .sh extension in the project root folder 
     for script in ./*.sh; do
-        if [ -f "$script" ]; then # ensures that the object found is a file (and not a directory or other type of object)
-            # Set executable permissions for script
+        if [ -f "$script" ] && [ "$script" != "config.sh" ] && [ "$script" != "functions.sh" ]; then 
+            # Set executable permissions for each found script
             chmod +x "$script" || error_exit "Failed to make $script executable."
             log "Set executable permissions for $script"
         fi
     done
 else
+    # If the repository already exists, skip cloning and just navigate to the directory
     log "Repository "$REPOSITORY" already exists, skipping cloning."
     cd "$REPOSITORY" || error_exit "Failed to change to project directory."
 fi

@@ -1,33 +1,37 @@
 #!/usr/bin/bash
 
-# Script for Adding a New User to the Server with Optional Sudo Access and SSH Key Setup
+# Script for adding a new user to the server with optional sudo access and setting up an SSH key
 #
-# This script performs the following actions:
-# 1. Prompts the user to confirm whether a new user should be added to the server.
-# 2. Validates provided arguments (HOMEDIR and LOGFILE) and ensures all required commands are available.
-# 3. Requests and validates the new user's username and password.
-# 4. Creates a new user, sets up SSH access, and optionally adds them to the 'sudo' group.
+# This script does the following:
+# 1. Asks the user to confirm adding a new user to the server.
+# 2. Asks for the username and password of the new user, validates them.
+# 3. Creates a new user, sets up SSH access, and adds it to the 'sudo' group if necessary.
+# 4. Adds information about the new user to the config.sh configuration file in the 'USERS_LIST' array to keep the list of users on the server up to date.
 #
 # Requirements:
-# - Must be run with superuser privileges.
-# - Expects `deploy_to_new_instance_with_caddy.sh` to provide the `log` and `error_exit` functions.
-# - The authorized_keys file must exist in the provided home directory path.
+# - The script must be executed with superuser rights.
+# - It is expected that there will be an authorized_keys file in HOME_DIR to set up SSH access.
+# - The config.sh file must contain the 'USERS_LIST' array, where new users are added.
+# - The log file must be specified to record all steps and errors during the script execution.
 #
-# Usage:
-# ./<script_name> <HOMEDIR> <LOGFILE>
-# Replace `<HOMEDIR>` with the home directory containing the authorized_keys file.
-# Replace `<LOGFILE>` with the path to the log file where the output should be stored.
-#
-# Example:
-# ./add_user.sh /home/existing_user /var/log/user_setup.log
+# Example of use:
+# sudo ./create_new_user.sh
 #
 # Notes:
-# - The script includes extensive validation to prevent incorrect inputs.
-# - A cleanup function removes partially created users in case of errors.
-# - Passwords must be at least 8 characters long.
+# - The script includes a check for an existing user and offers to change the name if the user already exists.
+# - To add to the sudo group, the user will be asked to confirm this action.
+# - The password must be at least 8 characters long.
+# - In case of errors at any stage of user creation, partially created users are cleared (deleted).
+#
+# Expected files:
+# - The authorized_keys file for configuring SSH access.
+# - The config.sh file for storing the list of users.
+#
+# The script also handles errors and writes to the log file to track successful and unsuccessful operations.
 
-# Source the main script to access functions like log and error_exit
-source ./deploy_to_new_instance_with_caddy.sh
+# Source for accessing shared constants and functions
+source ./config.sh
+source ./functions.sh
 
 # Request to add a new user
 read -p "Do you want to add a new user to the server? Enter 'y' to confirm: " add_user
@@ -37,16 +41,21 @@ if [[ "$add_user" != "y" ]]; then
     exit 0
 fi
 
-# Checking the arguments passing
-if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Error: Both HOMEDIR and LOGFILE must be provided."
-    echo "Usage: $0 <HOMEDIR> <LOGFILE>" # clarifying the order of argument passing
-    exit 1
-fi
+# Function to update 'config.sh' with the new user's info
+update_config_with_new_user() {
+    local new_user="$1"
+    local config_file="./config.sh"
 
-# Getting values ​​from passed arguments
-HOMEDIR=$1
-LOGFILE=$2
+    # Check if the user is already in the config (to avoid duplicates)
+    if grep -q "$new_user" "$config_file"; then
+        log "User '$new_user' is already listed in the config file."
+        return 0
+    fi
+
+    # Append the new user to the config file
+    echo "USERS_LIST+=(\"$new_user\")" >> "$config_file"
+    log "Added '$new_user' to the USERS_LIST in $config_file."
+}
 
 # Checking the availability of required commands
 check_required_commands() {
@@ -158,5 +167,8 @@ fi
 
 # Setting a password
 echo "$new_username:$new_password" | sudo chpasswd || error_exit "Failed to set password for user '$new_username'."
+
+# Update the config file with the new user
+update_config_with_new_user "$new_username"
 
 log "New user '$new_username' created successfully."

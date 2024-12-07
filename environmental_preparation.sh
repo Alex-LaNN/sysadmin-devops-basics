@@ -1,46 +1,29 @@
 #!/usr/bin/bash
 
-# Script for Handling .env File Configuration
+# Script to move and rename .env file to the project directory and set its permissions
 #
 # This script performs the following actions:
-# 1. Validates that both `HOMEDIR` and `LOGFILE` arguments are provided.
-# 2. Moves a `.env` file from the specified `HOMEDIR` to the project directory, renaming it to `.env.production`.
-# 3. Sets secure ownership and permissions for the `.env.production` file.
+# 1. Checks if the .env file exists in the 'HOMEDIR' directory. If it does, the script moves and renames it to .env.production.
+# 2. If the file is moved, the script sets the appropriate ownership and permissions for the .env.production file.
+# 3. If the file is not found, a warning is logged, and the script skips the renaming and permission steps.
 #
 # Requirements:
-# - Must be run with superuser privileges for file operations (e.g., `sudo`).
-# - The source file `.env` must exist in the specified `HOMEDIR`.
-# - The `deploy_to_new_instance_with_caddy.sh` script must define the `log` and `error_exit` functions.
+# - The 'HOMEDIR' directory must contain the .env file, which will be moved and renamed to .env.production in the project directory.
+# - The script must be executed with appropriate permissions to move and modify files in the project directory.
 #
-# Usage:
-# ./<script_name> <HOMEDIR> <LOGFILE>
-# Replace `<HOMEDIR>` with the path to the directory containing the `.env` file.
-# Replace `<LOGFILE>` with the path to the log file for storing output and errors.
-#
-# Example:
-# ./handle_env_file.sh /home/ubuntu /var/log/env_config.log
-#
-# Notes:
-# - Ensures secure permissions for the `.env.production` file to protect sensitive data.
-# - Logs all operations to the specified log file.
+# Expected files:
+# - .env file in the 'HOMEDIR' directory.
+# - .env.production file will be created in the project directory.
 
-# Source the main script to access functions like log and error_exit
-source ./deploy_to_new_instance_with_caddy.sh
+# Source for accessing shared constants and functions
+source ./config.sh
+source ./functions.sh
 
-# Checking the arguments passing
-if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Error: Both HOMEDIR and LOGFILE must be provided."
-    echo "Usage: $0 <HOMEDIR> <LOGFILE>" # Уточнение очерёдности передачи аргументов
-    exit 1
-fi
 
-# Getting values ​​from passed arguments
-HOMEDIR=$1
-LOGFILE=$2
-
-# Move and rename .env file to project directory
+# Move and rename .env file to the project directory
 log "Moving .env file to the project directory and renaming..."
 if [ -f "$HOMEDIR/.env" ]; then
+    # Move and rename the .env file to .env.production
     sudo mv $HOMEDIR/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
     FILE_MOVED=1
 else
@@ -48,10 +31,12 @@ else
     FILE_MOVED=0
 fi
 
-# Set permissions for .env.production
+# Set permissions for .env.production if the file was moved
 if [ "$FILE_MOVED" -eq 1 ]; then
     log "Setting permissions for .env.production..."
+    # Set ownership of the .env.production file to the 'ubuntu' user and group
     sudo chown ubuntu:ubuntu .env.production | tee -a "$LOGFILE" || error_exit "Failed to set owner for .env.production."
+    # Set permissions so only the owner can read/write the file
     sudo chmod 600 .env.production | tee -a "$LOGFILE" || error_exit "Failed to set permissions for .env.production."
 else
     log "Skipping permission settings for .env.production since the file was not moved."
