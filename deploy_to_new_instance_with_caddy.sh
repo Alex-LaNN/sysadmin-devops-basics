@@ -72,7 +72,9 @@ done
 
 # Cloning a repository
 log "=== Repository Management ==="
-sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh && sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
+sudo wget "$SCRIPTOLINK" -O clone_repository.sh || error_exit "Failed to download clone_repository.sh"
+sudo chmod +x clone_repository.sh || error_exit "Failed to set execute permissions for clone_repository.sh"
+sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
 
 # Create another user if needed
 log "=== User Management ==="
