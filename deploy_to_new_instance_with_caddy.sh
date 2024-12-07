@@ -31,9 +31,10 @@
 
 # Store the home working directory in the variable HOMEDIR
 HOMEDIR=$(pwd)
-
 # Define the path to the log file
 LOGFILE="$HOMEDIR/start_deploy_with_caddy.log"
+# Setting a link to the script for clone repository
+SCRIPTOLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/clone_repository.sh"
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
@@ -71,7 +72,7 @@ done
 
 # Cloning a repository
 log "=== Repository Management ==="
-sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
+sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh && sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
 
 # Create another user if needed
 log "=== User Management ==="
