@@ -17,7 +17,6 @@
 # sudo ./clone_repositoty.sh
 #
 # Notes:
-# - If the repository already exists, cloning will be skipped, and the script will simply navigate to the repository directory.
 # - All .sh files in the root of the repository will be made executable, except for config.sh and functions.sh.
 #
 # Expected files:
@@ -31,22 +30,26 @@ source ./config.sh
 source ./functions.sh
 
 log "Cloning repository from GitHub..."
+# Create the repository directory if it doesn't exist and clone the repository
 if [ ! -d "$REPOSITORY" ]; then
-    # Create the repository directory if it doesn't exist and clone the repository
-    sudo mkdir "$REPOSITORY" && cd "$REPOSITORY"
-    git clone "$REPOLINK" | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
-
-    log "Making .sh files in the project root executable..."
-    # Search for files with the .sh extension in the project root folder 
-    for script in ./*.sh; do
-        if [ -f "$script" ] && [ "$script" != "config.sh" ] && [ "$script" != "functions.sh" ]; then 
-            # Set executable permissions for each found script
-            chmod +x "$script" || error_exit "Failed to make $script executable."
-            log "Set executable permissions for $script"
-        fi
-    done
-else
-    # If the repository already exists, skip cloning and just navigate to the directory
-    log "Repository "$REPOSITORY" already exists, skipping cloning."
-    cd "$REPOSITORY" || error_exit "Failed to change to project directory."
+    sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
 fi
+cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
+
+# Clone the repository into the current directory
+git clone "$REPOLINK" . | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
+
+# Checking the success of cloning
+if [ ! -d ".git" ]; then
+    error_exit "Cloning failed: .git directory missing from repository."
+fi
+
+log "Making .sh files in the project root executable..."
+# Search for files with the .sh extension in the project root folder 
+for script in ./*.sh; do
+    if [ -f "$script" ] && [ "$script" != "config.sh" ] && [ "$script" != "functions.sh" ]; then 
+        # Set executable permissions for each found script
+        chmod +x "$script" || error_exit "Failed to make $script executable."
+        log "Set executable permissions for $script"
+    fi
+done
