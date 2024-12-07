@@ -36,28 +36,26 @@
 #
 # Author: Alex-LaNN
 
-set -e  # Остановка при первой ошибке
-set -o pipefail  # Улучшенная обработка ошибок в pipe
+set -e  # Stop at first error
+set -o pipefail  # Improved error handling in pipe
 
 download_config_files() {
   local CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
   local FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
 
-  # Проверка и загрузка config.sh
+  # Check and load 'config.sh'
   if [ ! -f "./config.sh" ]; then
-    log "Uploading file 'config.sh' ..."
-    sudo wget -O config.sh "$CONFIGLINK" || error_exit "Failed to load 'config.sh'"
+    sudo wget -O config.sh "$CONFIGLINK"
   fi
 
-  # Проверка и загрузка functions.sh
+  # Check and load 'functions.sh'
   if [ ! -f "./functions.sh" ]; then
-    log "Uploading file 'functions.sh' ..."
-    sudo wget -O functions.sh "$FUNCTIONSLINK" || error_exit "Failed to load 'functions.sh'"
+    sudo wget -O functions.sh "$FUNCTIONSLINK"
   fi
 
-  # Подключение файлов
-  source ./config.sh || error_exit "Failed to connect 'config.sh'"
+  # Connecting files
   source ./functions.sh || error_exit "Failed to connect 'functions.sh'"
+  source ./config.sh || error_exit "Failed to connect 'config.sh'"
 
   log "Configuration files connected successfully."
 }
