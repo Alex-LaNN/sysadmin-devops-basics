@@ -31,7 +31,10 @@
 
 # Source for accessing shared constants and functions
 source ./config.sh
+echo "config.sh sourced successfully"
 source ./functions.sh
+echo "functions.sh sourced successfully"
+set -x
 
 # # Prevent recursive deployment
 # if [[ -n "$SKIP_RECURSIVE_DEPLOY" ]]; then
