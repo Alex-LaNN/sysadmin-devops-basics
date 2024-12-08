@@ -48,14 +48,14 @@ PACKAGES=("curl" "git" "wget" "software-properties-common" "ufw")
 USERS_LIST=("ubuntu")
 
 # Links to additional files
-CLONELINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/clone_repository.sh"
+#CLONELINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/clone_repository.sh"
 CREATEUSERLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/create_new_user.sh"
 DOCKERLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/docker_setup.sh"
 ENVIRONMENTLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/environment_setup.sh"
 
 # Array of all needed files
 NEEDEDFILES=(
-  "$CLONELINK"
+#  "$CLONELINK"
   "$CREATEUSERLINK"
   "$DOCKERLINK"
   "$ENVIRONMENTLINK"

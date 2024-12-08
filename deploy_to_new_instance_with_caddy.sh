@@ -48,7 +48,6 @@ download_needed_files() {
   if [ ! -f "./config.sh" ]; then
     sudo wget -O config.sh "$CONFIGLINK"
   fi
-
   # Check and load 'functions.sh'
   if [ ! -f "./functions.sh" ]; then
     sudo wget -O functions.sh "$FUNCTIONSLINK"
@@ -57,7 +56,6 @@ download_needed_files() {
   # Connecting files
   source ./functions.sh || error_exit "Failed to connect 'functions.sh'"
   source ./config.sh || error_exit "Failed to connect 'config.sh'"
-
   log "Configuration and functions files connected successfully."
 
   # Assuming 'NEEDEDFILES' is an array defined in config.sh
@@ -65,12 +63,13 @@ download_needed_files() {
     error_exit "No files listed in NEEDEDFILES array. Please check 'config.sh'."
   fi
 
-   # Create the repository directory if it doesn't exist and clone the repository
+   # Create the repository directory if it doesn't exist
   if [ ! -d "$REPOSITORY" ]; then
       sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
   fi
   cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
 
+  # Download all needed files
   for FILE_URL in "${NEEDEDFILES[@]}"; do
     # Extract filename from URL
     FILE_NAME=$(basename "$FILE_URL")
@@ -84,7 +83,6 @@ download_needed_files() {
     # Download the file
     log "Downloading '$FILE_NAME' from '$FILE_URL'..."
     sudo wget -O "$FILE_NAME" "$FILE_URL" || error_exit "Failed to download '$FILE_NAME'"
-
     log "'$FILE_NAME' downloaded successfully."
   done
 
@@ -94,14 +92,9 @@ download_needed_files() {
 # Step 1: Initial instance preparation
 manage_packages() {
   log "=== Packages Management ==="
-  
-  PWD=$(pwd)
-  log "******************* 99 -manage_packages()- основной  PWD - $PWD"
-  
   log "Updating package list..."
   # Update system package list and upgrade installed packages
   sudo apt update && sudo apt upgrade -y || error_exit "Unable to update system."
-
   # Check and install missing packages
   for pkg in "${PACKAGES[@]}"; do
     if ! dpkg -l | grep -qw "$pkg"; then
@@ -116,27 +109,15 @@ manage_packages() {
 # Step 2: Clone the repository
 clone_repository() {
   log "=== Repository Management ==="
-
-  PWD=$(pwd)
-  log "******************* 118 -clone_repository()- основной  PWD - $PWD"
-
   # Load the cloning script
-  # sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh 
-  
+  sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh 
   # Perform cloning
   sudo ./clone_repository.sh || error_exit "Failed to clone repository"
-
-  # Go to the project directory
-  #cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
 }
 
 # Step 3: User Management
 manage_users() {
   log "=== User Management ==="
-
-  PWD=$(pwd)
-  log "******************* -manage_users()- 137 основной  PWD - $PWD"
-
   # Checking for the presence of a user creation script
   if [ -f "./create_new_user.sh" ]; then
     sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
@@ -148,10 +129,6 @@ manage_users() {
 # Step 4: Docker Management
 setup_docker() {
   log "=== Docker Management ==="
-
-  PWD=$(pwd)
-  log "******************* 157 -setup_docker()- основной  PWD - $PWD"
-
   if [ -f "./docker_instalation.sh" ]; then
     sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
   else
