@@ -122,8 +122,6 @@ clone_repository() {
 
   # Load the cloning script
   # sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh 
-  sudo cp functions.sh "$PROJECTDIR"/functions.sh
-  sudo cp config.sh "$PROJECTDIR"/config.sh
   
   # Perform cloning
   sudo ./clone_repository.sh || error_exit "Failed to clone repository"
@@ -141,8 +139,6 @@ manage_users() {
 
   # Checking for the presence of a user creation script
   if [ -f "./create_new_user.sh" ]; then
-    # Running the user creation script with a flag that prevents recursion
-    # export SKIP_RECURSIVE_DEPLOY=1
     sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
   else
     log "User creation script not found."

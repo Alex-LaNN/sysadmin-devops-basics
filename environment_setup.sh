@@ -16,8 +16,8 @@
 # - .env.production file will be created in the project directory.
 
 # Source for accessing shared constants and functions
-source ./config.sh
-source ./functions.sh
+source "$PROJECTDIR"/config.sh
+source "$PROJECTDIR"/functions.sh
 
 
 # Move and rename .env file to the project directory

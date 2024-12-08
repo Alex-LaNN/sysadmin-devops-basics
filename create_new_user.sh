@@ -30,8 +30,8 @@
 # The script also handles errors and writes to the log file to track successful and unsuccessful operations.
 
 # Source for accessing shared constants and functions
-source ./config.sh
-source ./functions.sh
+source "$PROJECTDIR"/config.sh
+source "$PROJECTDIR"/functions.sh
 
   PWD=$(pwd)
   log "******************* 37 -create_new_user.sh-  $PWD"

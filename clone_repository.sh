@@ -26,8 +26,8 @@
 # The script logs successful operations and error messages to a log file.
 
 # Source for accessing shared constants and functions
-source ./config.sh
-source ./functions.sh
+source "$PROJECTDIR"/config.sh
+source "$PROJECTDIR"/functions.sh
 
 log "Cloning repository from GitHub..."
 
