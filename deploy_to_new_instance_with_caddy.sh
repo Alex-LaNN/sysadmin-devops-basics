@@ -65,6 +65,12 @@ download_needed_files() {
     error_exit "No files listed in NEEDEDFILES array. Please check 'config.sh'."
   fi
 
+   # Create the repository directory if it doesn't exist and clone the repository
+  if [ ! -d "$REPOSITORY" ]; then
+      sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
+  fi
+  cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
+
   for FILE_URL in "${NEEDEDFILES[@]}"; do
     # Extract filename from URL
     FILE_NAME=$(basename "$FILE_URL")
@@ -89,6 +95,9 @@ download_needed_files() {
 manage_packages() {
   log "=== Packages Management ==="
   
+  PWD=$(pwd)
+  log "******************* 99 -manage_packages()- основной  PWD - $PWD"
+  
   log "Updating package list..."
   # Update system package list and upgrade installed packages
   sudo apt update && sudo apt upgrade -y || error_exit "Unable to update system."
@@ -107,12 +116,17 @@ manage_packages() {
 # Step 2: Clone the repository
 clone_repository() {
   log "=== Repository Management ==="
+
+  PWD=$(pwd)
+  log "******************* 118 -clone_repository()- основной  PWD - $PWD"
+
   # Load the cloning script
-  sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh 
+  # sudo wget "$SCRIPTOLINK" && sudo chmod +x clone_repository.sh 
+  sudo cp functions.sh "$PROJECTDIR"/functions.sh
+  sudo cp config.sh "$PROJECTDIR"/config.sh
   
   # Perform cloning
   sudo ./clone_repository.sh || error_exit "Failed to clone repository"
-  sudo cp functions.sh "$PROJECTDIR"/functions.sh
 
   # Go to the project directory
   cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
@@ -121,6 +135,10 @@ clone_repository() {
 # Step 3: User Management
 manage_users() {
   log "=== User Management ==="
+
+  PWD=$(pwd)
+  log "******************* -manage_users()- 137 основной  PWD - $PWD"
+
   # Checking for the presence of a user creation script
   if [ -f "./create_new_user.sh" ]; then
     # Running the user creation script with a flag that prevents recursion
@@ -134,6 +152,10 @@ manage_users() {
 # Step 4: Docker Management
 setup_docker() {
   log "=== Docker Management ==="
+
+  PWD=$(pwd)
+  log "******************* 157 -setup_docker()- основной  PWD - $PWD"
+
   if [ -f "./docker_instalation.sh" ]; then
     sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
   else

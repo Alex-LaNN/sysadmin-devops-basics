@@ -30,11 +30,15 @@ source ./config.sh
 source ./functions.sh
 
 log "Cloning repository from GitHub..."
-# Create the repository directory if it doesn't exist and clone the repository
-if [ ! -d "$REPOSITORY" ]; then
-    sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
-fi
-cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
+
+  PWD=$(pwd)
+  log "******************* 35 -clone_repository.sh-  $PWD"
+
+# # Create the repository directory if it doesn't exist and clone the repository
+# if [ ! -d "$REPOSITORY" ]; then
+#     sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
+# fi
+# cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
 
 # Clone the repository into the current directory
 git clone "$REPOLINK" . | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
