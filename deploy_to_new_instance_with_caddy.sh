@@ -16,8 +16,8 @@
 # Required supporting scripts:
 # - clone_repository.sh
 # - create_new_user.sh
-# - docker_instalation.sh
-# - environmental_preparation.sh
+# - docker_setup.sh
+# - environment_setup.sh
 #
 # Requirements:
 # - Run with superuser privileges (`sudo`).
@@ -39,7 +39,8 @@
 set -e  # Stop at first error
 set -o pipefail  # Improved error handling in pipe
 
-download_config_files() {
+# Function to download all required files
+download_needed_files() {
   local CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
   local FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
 
@@ -57,7 +58,31 @@ download_config_files() {
   source ./functions.sh || error_exit "Failed to connect 'functions.sh'"
   source ./config.sh || error_exit "Failed to connect 'config.sh'"
 
-  log "Configuration files connected successfully."
+  log "Configuration and functions files connected successfully."
+
+  # Assuming 'NEEDEDFILES' is an array defined in config.sh
+  if [ ${#NEEDEDFILES[@]} -eq 0 ]; then
+    error_exit "No files listed in NEEDEDFILES array. Please check 'config.sh'."
+  fi
+
+  for FILE_URL in "${NEEDEDFILES[@]}"; do
+    # Extract filename from URL
+    FILE_NAME=$(basename "$FILE_URL")
+
+    # Check if file already exists
+    if [ -f "./$FILE_NAME" ]; then
+      log "'$FILE_NAME' already exists. Skipping download."
+      continue
+    fi
+
+    # Download the file
+    log "Downloading '$FILE_NAME' from '$FILE_URL'..."
+    sudo wget -O "$FILE_NAME" "$FILE_URL" || error_exit "Failed to download '$FILE_NAME'"
+
+    log "'$FILE_NAME' downloaded successfully."
+  done
+
+  log "All necessary files downloaded successfully."
 }
 
 # Step 1: Initial instance preparation
@@ -98,7 +123,6 @@ manage_users() {
   log "=== User Management ==="
   # Checking for the presence of a user creation script
   if [ -f "./create_new_user.sh" ]; then
-    echo "++++++++++++++++++++++++++++++++++"
     # Running the user creation script with a flag that prevents recursion
     # export SKIP_RECURSIVE_DEPLOY=1
     sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
@@ -142,7 +166,7 @@ check_containers() {
 # Main deployment function
 main() {
   # Sequential launch of stages
-  download_config_files
+  download_needed_files
 
   # Clearing the log file
   > "$LOGFILE"
