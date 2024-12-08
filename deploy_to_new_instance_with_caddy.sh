@@ -127,7 +127,7 @@ clone_repository() {
   sudo ./clone_repository.sh || error_exit "Failed to clone repository"
 
   # Go to the project directory
-  cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
+  #cd "$PROJECTDIR" || error_exit "Failed to change directory to $PROJECTDIR"
 }
 
 # Step 3: User Management
