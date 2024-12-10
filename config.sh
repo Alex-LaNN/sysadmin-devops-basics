@@ -17,11 +17,11 @@
 # - PACKAGES: List of essential packages to check and install.
 # - USERS_LIST: List of users to manage during deployment.
 # - Links to additional scripts: URLs for scripts like user creation, Docker installation, and environment preparation.
-# - NEEDEDFILES: Array of all required script links for the deployment process.
+# - REQUIRED_SCRIPTS: Array of all required script links for the deployment process.
 #
 # Notes:
 # - The variables defined here are used throughout all deployment-related scripts.
-# - Ensure external scripts (NEEDEDFILES) are accessible during the deployment.
+# - Ensure external scripts (REQUIRED_SCRIPTS) are accessible during the deployment.
 
 # HOMEDIR: Store the current working directory as the home directory for the deployment.
 HOMEDIR=$(pwd)
@@ -53,8 +53,8 @@ CREATEUSERLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basi
 DOCKERLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/docker_setup.sh"
 ENVIRONMENTLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/environment_setup.sh"
 
-# Array of all needed files
-NEEDEDFILES=(
+# Array of all needed scripts
+REQUIRED_SCRIPTS=(
 #  "$CLONELINK"
   "$CREATEUSERLINK"
   "$DOCKERLINK"

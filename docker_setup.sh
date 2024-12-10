@@ -26,8 +26,8 @@
 # - functions.sh with functions for logging and error handling.
 
 # Source for accessing shared constants and functions
-source "$PROJECTDIR"/config.sh
-source "$PROJECTDIR"/functions.sh
+source ./config.sh
+source ./functions.sh
 
 log "Checking Docker installation..."
 if ! dpkg -l | grep -qw docker.io; then

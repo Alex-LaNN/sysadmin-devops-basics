@@ -39,7 +39,7 @@
 set -e  # Stop at first error
 set -o pipefail  # Improved error handling in pipe
 
-# Function to download all required files
+# Function to download all files necessary for the script to work
 download_needed_files() {
   local CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
   local FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
@@ -58,35 +58,40 @@ download_needed_files() {
   source ./config.sh || error_exit "Failed to connect 'config.sh'"
   log "Configuration and functions files connected successfully."
 
-  # Assuming 'NEEDEDFILES' is an array defined in config.sh
-  if [ ${#NEEDEDFILES[@]} -eq 0 ]; then
-    error_exit "No files listed in NEEDEDFILES array. Please check 'config.sh'."
+  # Assuming 'REQUIRED_SCRIPTS' is an array defined in config.sh
+  if [ ${#REQUIRED_SCRIPTS[@]} -eq 0 ]; then
+    error_exit "There are no files in the 'REQUIRED_SCRIPTS' array required for the script to work. Check 'config.sh'."
   fi
 
    # Create the repository directory if it doesn't exist
   if [ ! -d "$REPOSITORY" ]; then
       sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
   fi
+
+  # Copy 'config.sh' and 'functions.sh' to the repository directory
+  sudo cp ./config.sh "$REPOSITORY/" || error_exit "Failed to copy 'config.sh' to directory $REPOSITORY."
+  sudo cp ./functions.sh "$REPOSITORY/" || error_exit "Failed to copy 'functions.sh' to directory $REPOSITORY." 
+
   cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
 
-  # Download all needed files
-  for FILE_URL in "${NEEDEDFILES[@]}"; do
-    # Extract filename from URL
-    FILE_NAME=$(basename "$FILE_URL")
+  # Download all needed scripts
+  for SCRIPT_URL in "${REQUIRED_SCRIPTS[@]}"; do
+    # Extract script name from URL
+    SCRIPT_NAME=$(basename "$SCRIPT_URL")
 
-    # Check if file already exists
-    if [ -f "./$FILE_NAME" ]; then
-      log "'$FILE_NAME' already exists. Skipping download."
+    # Check if script already exists
+    if [ -f "./$SCRIPT_NAME" ]; then
+      log "Script '$SCRIPT_NAME' already exists. Skipping download."
       continue
     fi
 
-    # Download the file
-    log "Downloading '$FILE_NAME' from '$FILE_URL'..."
-    sudo wget -O "$FILE_NAME" "$FILE_URL" || error_exit "Failed to download '$FILE_NAME'"
-    log "'$FILE_NAME' downloaded successfully."
+    # Download the script
+    log "Downloading script '$SCRIPT_NAME' from '$SCRIPT_URL'..."
+    sudo wget -O "$SCRIPT_NAME" "$SCRIPT_URL" || error_exit "Failed to download '$SCRIPT_NAME'"
+    log "Script '$SCRIPT_NAME' downloaded successfully."
   done
 
-  log "All necessary files downloaded successfully."
+  log "All necessary scripts downloaded successfully."
 }
 
 # Step 1: Initial instance preparation
