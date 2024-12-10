@@ -39,7 +39,7 @@
 set -e  # Stop at first error
 set -o pipefail  # Improved error handling in pipe
 
-# Function to download all files necessary for the script to work
+# Step 1: Function to download all files necessary for the script to work
 download_needed_files() {
   local CONFIGLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/config.sh"
   local FUNCTIONSLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/functions.sh"
@@ -54,8 +54,11 @@ download_needed_files() {
   fi
 
   # Connecting files
-  source ./functions.sh || error_exit "Failed to connect 'functions.sh'"
   source ./config.sh || error_exit "Failed to connect 'config.sh'"
+  source ./functions.sh || error_exit "Failed to connect 'functions.sh'"
+  
+  # Clearing the log file
+  > "$LOGFILE"
   log "Configuration and functions files connected successfully."
 
   # Assuming 'REQUIRED_SCRIPTS' is an array defined in config.sh
@@ -63,38 +66,19 @@ download_needed_files() {
     error_exit "There are no files in the 'REQUIRED_SCRIPTS' array required for the script to work. Check 'config.sh'."
   fi
 
-   # Create the repository directory if it doesn't exist
-  if [ ! -d "$REPOSITORY" ]; then
-      sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
-  fi
+  # Initial instance preparation
+  manage_packages
 
-  # Copy 'config.sh' and 'functions.sh' to the repository directory
-  sudo cp ./config.sh "$REPOSITORY/" || error_exit "Failed to copy 'config.sh' to directory $REPOSITORY."
-  sudo cp ./functions.sh "$REPOSITORY/" || error_exit "Failed to copy 'functions.sh' to directory $REPOSITORY." 
+  # Clone the repository
+  clone_repository
 
-  cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
+  PWD=$(pwd)
+  log "******************* 76 -deploy_to_new_instance_with_caddy.sh-  $PWD"
 
-  # Download all needed scripts
-  for SCRIPT_URL in "${REQUIRED_SCRIPTS[@]}"; do
-    # Extract script name from URL
-    SCRIPT_NAME=$(basename "$SCRIPT_URL")
-
-    # Check if script already exists
-    if [ -f "./$SCRIPT_NAME" ]; then
-      log "Script '$SCRIPT_NAME' already exists. Skipping download."
-      continue
-    fi
-
-    # Download the script
-    log "Downloading script '$SCRIPT_NAME' from '$SCRIPT_URL'..."
-    sudo wget -O "$SCRIPT_NAME" "$SCRIPT_URL" || error_exit "Failed to download '$SCRIPT_NAME'"
-    log "Script '$SCRIPT_NAME' downloaded successfully."
-  done
-
-  log "All necessary scripts downloaded successfully."
+  cd "$PROJECTDIR" || error_exit "Failed to change directory $PROJECTDIR."
 }
 
-# Step 1: Initial instance preparation
+# Initial instance preparation
 manage_packages() {
   log "=== Packages Management ==="
   log "Updating package list..."
@@ -111,7 +95,7 @@ manage_packages() {
   done
 }
 
-# Step 2: Clone the repository
+# Clone the repository
 clone_repository() {
   log "=== Repository Management ==="
   # Load the cloning script
@@ -120,7 +104,7 @@ clone_repository() {
   sudo ./clone_repository.sh || error_exit "Failed to clone repository"
 }
 
-# Step 3: User Management
+# Step 2: User Management
 manage_users() {
   log "=== User Management ==="
   # Checking for the presence of a user creation script
@@ -131,7 +115,7 @@ manage_users() {
   fi
 }
 
-# Step 4: Docker Management
+# Step 3: Docker Management
 setup_docker() {
   log "=== Docker Management ==="
   if [ -f "./docker_instalation.sh" ]; then
@@ -141,7 +125,7 @@ setup_docker() {
   fi
 }
 
-# Step 5: Environment Management
+# Step 4: Environment Management
 prepare_environment() {
   log "=== Environment Management ==="
   if [ -f "./environmental_preparation.sh" ]; then
@@ -151,7 +135,7 @@ prepare_environment() {
   fi
 }
 
-# Step 6: Start Docker Compose
+# Step 5: Start Docker Compose
 start_docker_compose() {
   log "Starting Docker Compose..."
   sudo --preserve-env docker-compose --env-file .env.production -f docker-compose.prod.caddy.yml up -d --build || error_exit "Failed to start Docker Compose."
@@ -165,22 +149,16 @@ check_containers() {
 
 # Main deployment function
 main() {
-  # Sequential launch of stages
-  download_needed_files
-
-  # Clearing the log file
-  > "$LOGFILE"
-  
   log "=== Starting deployment process ==="
 
-  manage_packages
-  clone_repository
+  # Sequential launch of stages
+  download_needed_files
   manage_users
   setup_docker
   prepare_environment
   start_docker_compose
   check_containers
-  
+
   log "=== Deployment completed ==="
 }
 

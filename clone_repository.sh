@@ -31,22 +31,37 @@ source ./functions.sh
 
 log "Cloning repository from GitHub..."
 
-  PWD=$(pwd)
-  log "******************* 35 -clone_repository.sh-  $PWD"
-
-# # Create the repository directory if it doesn't exist and clone the repository
-# if [ ! -d "$REPOSITORY" ]; then
-#     sudo mkdir -p "$REPOSITORY" || error_exit "Failed to create directory $REPOSITORY."
-# fi
-# cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
+PWD=$(pwd)
+log "******************* 35 -clone_repository.sh-  $PWD"
 
 # Clone the repository into the current directory
-git clone "$REPOLINK" . | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
+git clone "$REPOLINK" | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
 
 # Checking the success of cloning
-if [ ! -d ".git" ]; then
+if [ ! -d "$REPOSITORY" && ! -d ".git" ]; then
     error_exit "Cloning failed: .git directory missing from repository."
 fi
+
+# Copy 'config.sh' and 'functions.sh' to the repository directory
+sudo cp ./config.sh "$REPOSITORY/" || error_exit "Failed to copy 'config.sh' to directory $REPOSITORY."
+sudo cp ./functions.sh "$REPOSITORY/" || error_exit "Failed to copy 'functions.sh' to directory $REPOSITORY."
+
+cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
+
+# Download all needed scripts
+for SCRIPT_URL in "${REQUIRED_SCRIPTS[@]}"; do
+  # Extract script name from URL
+  SCRIPT_NAME=$(basename "$SCRIPT_URL")
+  # Check if script already exists
+  if [ -f "./$SCRIPT_NAME" ]; then
+    log "Script '$SCRIPT_NAME' already exists. Skipping download."
+    continue
+  fi
+  # Download the script
+  log "Downloading script '$SCRIPT_NAME' from '$SCRIPT_URL'..."
+  sudo wget -O "$SCRIPT_NAME" "$SCRIPT_URL" || error_exit "Failed to download '$SCRIPT_NAME'"
+  log "Script '$SCRIPT_NAME' downloaded successfully."
+done
 
 log "Making .sh files in the project root executable..."
 # Search for files with the .sh extension in the project root folder 
@@ -57,3 +72,8 @@ for script in ./*.sh; do
         log "Set executable permissions for $script"
     fi
 done
+
+log "All necessary scripts downloaded successfully."
+
+PWD=$(pwd)
+log "******************* 79 -clone_repository.sh-  $PWD"
