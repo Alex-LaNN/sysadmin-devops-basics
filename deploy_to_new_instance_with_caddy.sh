@@ -60,6 +60,7 @@ download_needed_files() {
   # Clearing the log file
   > "$LOGFILE"
   log "Configuration and functions files connected successfully."
+  log "=== Starting deployment process ==="
 
   # Assuming 'REQUIRED_SCRIPTS' is an array defined in config.sh
   if [ ${#REQUIRED_SCRIPTS[@]} -eq 0 ]; then
@@ -68,14 +69,8 @@ download_needed_files() {
 
   # Initial instance preparation
   manage_packages
-
   # Clone the repository
   clone_repository
-
-  PWD=$(pwd)
-  log "******************* 76 -deploy_to_new_instance_with_caddy.sh-  $PWD"
-
-  cd "$PROJECTDIR" || error_exit "Failed to change directory $PROJECTDIR."
 }
 
 # Initial instance preparation
@@ -107,6 +102,10 @@ clone_repository() {
 # Step 2: User Management
 manage_users() {
   log "=== User Management ==="
+
+  PWD=$(pwd)
+  log "******************* 107 -deploy_to_new_instance_with_caddy.sh-  $PWD"
+
   # Checking for the presence of a user creation script
   if [ -f "./create_new_user.sh" ]; then
     sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
@@ -118,6 +117,10 @@ manage_users() {
 # Step 3: Docker Management
 setup_docker() {
   log "=== Docker Management ==="
+
+  PWD=$(pwd)
+  log "******************* 122 -deploy_to_new_instance_with_caddy.sh-  $PWD"
+
   if [ -f "./docker_instalation.sh" ]; then
     sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
   else
@@ -149,10 +152,9 @@ check_containers() {
 
 # Main deployment function
 main() {
-  log "=== Starting deployment process ==="
-
   # Sequential launch of stages
   download_needed_files
+  cd "$PROJECTDIR" || error_exit "Failed to change directory $PROJECTDIR."
   manage_users
   setup_docker
   prepare_environment

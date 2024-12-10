@@ -74,6 +74,3 @@ for script in ./*.sh; do
 done
 
 log "All necessary scripts downloaded successfully."
-
-PWD=$(pwd)
-log "******************* 79 -clone_repository.sh-  $PWD"
