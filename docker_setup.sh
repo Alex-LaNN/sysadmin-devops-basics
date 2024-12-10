@@ -30,40 +30,55 @@ source ./config.sh
 source ./functions.sh
 
 log "Checking Docker installation..."
-if ! dpkg -l | grep -qw docker.io; then
+
+# Checking if Docker is installed
+if ! dpkg -l | grep -qw docker-ce; then
     log "Installing Docker..."
+
     # Removing old Docker versions (if any)
-    sudo apt-get remove docker docker-engine docker.io containerd runc
+    sudo apt-get remove -y docker docker.io containerd runc || log "No old Docker versions to remove."
 
-    # Setting up a Docker repository 
-    sudo apt-get update sudo apt-get install ca-certificates curl gnupg lsb-release 
+    # Installing the required dependencies
+    sudo apt-get update
+    sudo apt-get install -y ca-certificates curl gnupg lsb-release
 
-    # Adding the Official Docker GPG Key 
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg 
+    # Adding the Official Docker GPG Key
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-    # Configuring a stable Docker repository 
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \  
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # Adding a Docker Repository
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     # Installing Docker Engine
     sudo apt-get update
-    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-    # Adding the required 'USERS_LIST' to the 'docker' group for user access
+    # Check and create 'docker' group
+    if ! getent group docker >/dev/null; then
+        sudo groupadd docker
+        log "Docker group created."
+    fi
+
+    # Adding users to the 'docker' group
     for user in "${USERS_LIST[@]}"; do
-      sudo usermod -aG docker $user
+        sudo usermod -aG docker "$user" && log "Added $user to docker group."
     done
 
-    # Configuring UFW firewall settings
-    sudo ufw default deny incoming 
-    sudo ufw default allow outgoing 
-    sudo ufw allow 22/tcp   # SSH 
-    sudo ufw allow 80/tcp   # HTTP 
-    sudo ufw allow 443/tcp  # HTTPS 
-    sudo ufw enable
+    # UFW setup
+    if sudo ufw status | grep -qw inactive; then
+        log "Configuring UFW firewall settings..."
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
+        sudo ufw allow 22/tcp   # SSH
+        sudo ufw allow 80/tcp   # HTTP
+        sudo ufw allow 443/tcp  # HTTPS
+        sudo ufw --force enable
+        log "UFW firewall enabled."
+    else
+        log "UFW firewall is already active, skipping configuration."
+    fi
 
-   # Docker Startup and Autostart configuration
+    # Enabling and running Docker
     sudo systemctl daemon-reload
     sudo systemctl restart docker
     sudo systemctl enable docker
@@ -73,11 +88,12 @@ else
     log "Docker is already installed, skipping."
 fi
 
-# Checking if Docker Compose is already installed
+# Verifying Docker Compose Installation
 log "Checking Docker Compose installation..."
-if ! dpkg -l | grep -qw docker-compose; then
+if ! docker-compose --version &>/dev/null; then
     log "Installing Docker Compose..."
-    sudo apt install -y docker-compose | tee -a "$LOGFILE" || error_exit "Failed to install Docker Compose."
+    sudo apt-get install -y docker-compose || error_exit "Failed to install Docker Compose."
+    log "Docker Compose installed successfully."
 else
     log "Docker Compose is already installed, skipping."
 fi

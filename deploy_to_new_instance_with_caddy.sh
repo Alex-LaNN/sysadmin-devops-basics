@@ -102,10 +102,6 @@ clone_repository() {
 # Step 2: User Management
 manage_users() {
   log "=== User Management ==="
-
-  PWD=$(pwd)
-  log "******************* 107 -deploy_to_new_instance_with_caddy.sh-  $PWD"
-
   # Checking for the presence of a user creation script
   if [ -f "./create_new_user.sh" ]; then
     sudo ./create_new_user.sh || error_exit "Failed to execute create_new_user.sh"
@@ -117,10 +113,6 @@ manage_users() {
 # Step 3: Docker Management
 setup_docker() {
   log "=== Docker Management ==="
-
-  PWD=$(pwd)
-  log "******************* 122 -deploy_to_new_instance_with_caddy.sh-  $PWD"
-
   if [ -f "./docker_setup.sh" ]; then
     sudo ./docker_setup.sh || error_exit "Failed to execute docker_instalation.sh"
   else

@@ -19,25 +19,13 @@
 source ./config.sh
 source ./functions.sh
 
-
-# Move and rename .env file to the project directory
-log "Moving .env file to the project directory and renaming..."
-if [ -f "$HOMEDIR/.env" ]; then
-    # Move and rename the .env file to .env.production
-    sudo mv $HOMEDIR/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
-    FILE_MOVED=1
-else
-    log "WARNING: .env not found in "$HOMEDIR", skipping move. Check for .env.production file in project root."
-    FILE_MOVED=0
-fi
-
-# Set permissions for .env.production if the file was moved
-if [ "$FILE_MOVED" -eq 1 ]; then
+# Set permissions for .env.production
+if [ -f .env.production ]; then
     log "Setting permissions for .env.production..."
     # Set ownership of the .env.production file to the 'ubuntu' user and group
     sudo chown ubuntu:ubuntu .env.production | tee -a "$LOGFILE" || error_exit "Failed to set owner for .env.production."
     # Set permissions so only the owner can read/write the file
     sudo chmod 600 .env.production | tee -a "$LOGFILE" || error_exit "Failed to set permissions for .env.production."
 else
-    log "Skipping permission settings for .env.production since the file was not moved."
+    log "Skipping permission settings for .env.production."
 fi
