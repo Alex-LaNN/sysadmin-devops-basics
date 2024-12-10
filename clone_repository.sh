@@ -66,7 +66,8 @@ done
 log "Making .sh files in the project root executable..."
 # Search for files with the .sh extension in the project root folder 
 for script in ./*.sh; do
-    if [ -f "$script" ] && [ "$script" != "config.sh" ] && [ "$script" != "functions.sh" ]; then 
+    script_name=$(basename "$script")
+    if [ -f "$script" ] && [ "$script_name" != "config.sh" ] && [ "$script_name" != "functions.sh" ]; then 
         # Set executable permissions for each found script
         chmod +x "$script" || error_exit "Failed to make $script executable."
         log "Set executable permissions for $script"

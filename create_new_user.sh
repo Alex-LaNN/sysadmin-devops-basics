@@ -33,9 +33,6 @@
 source ./config.sh
 source ./functions.sh
 
-  PWD=$(pwd)
-  log "******************* 37 -create_new_user.sh-  $PWD"
-
 # Request to add a new user
 read -p "Do you want to add a new user to the server? Enter 'y' to confirm: " add_user
 

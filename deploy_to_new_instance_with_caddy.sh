@@ -121,20 +121,20 @@ setup_docker() {
   PWD=$(pwd)
   log "******************* 122 -deploy_to_new_instance_with_caddy.sh-  $PWD"
 
-  if [ -f "./docker_instalation.sh" ]; then
-    sudo ./docker_instalation.sh || error_exit "Failed to execute docker_instalation.sh"
+  if [ -f "./docker_setup.sh" ]; then
+    sudo ./docker_setup.sh || error_exit "Failed to execute docker_instalation.sh"
   else
-    log "Docker installation script not found."
+    log "Docker setup script not found."
   fi
 }
 
 # Step 4: Environment Management
 prepare_environment() {
   log "=== Environment Management ==="
-  if [ -f "./environmental_preparation.sh" ]; then
-    sudo ./environmental_preparation.sh || error_exit "Failed to execute environmental_preparation.sh"
+  if [ -f "./environment_setup.sh" ]; then
+    sudo ./environment_setup.sh || error_exit "Failed to execute environmental_preparation.sh"
   else
-    log "Environment preparation script not found."
+    log "Environment setup script not found."
   fi
 }
 
