@@ -43,7 +43,7 @@ if ! dpkg -l | grep -qw docker-ce; then
     sudo apt-get install -y ca-certificates curl gnupg lsb-release
 
     # Adding the Official Docker GPG Key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/docker-archive-keyring.gpg
 
     # Adding a Docker Repository
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
@@ -57,26 +57,14 @@ if ! dpkg -l | grep -qw docker-ce; then
     if ! getent group docker >/dev/null; then
         sudo groupadd docker
         log "Docker group created."
+    else
+        log "Docker group already exists."
     fi
 
     # Adding users to the 'docker' group
     for user in "${USERS_LIST[@]}"; do
         sudo usermod -aG docker "$user" && log "Added $user to docker group."
     done
-
-    # UFW setup
-    if sudo ufw status | grep -qw inactive; then
-        log "Configuring UFW firewall settings..."
-        sudo ufw default deny incoming
-        sudo ufw default allow outgoing
-        sudo ufw allow 22/tcp   # SSH
-        sudo ufw allow 80/tcp   # HTTP
-        sudo ufw allow 443/tcp  # HTTPS
-        sudo ufw --force enable
-        log "UFW firewall enabled."
-    else
-        log "UFW firewall is already active, skipping configuration."
-    fi
 
     # Enabling and running Docker
     sudo systemctl daemon-reload

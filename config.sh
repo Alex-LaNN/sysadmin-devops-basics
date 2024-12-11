@@ -42,7 +42,7 @@ REPOLINK="https://github.com/Alex-LaNN/NestJS-backend.git"
 SCRIPTOLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/clone_repository.sh"
 
 # PACKAGES: List of packages to check
-PACKAGES=("curl" "git" "wget" "software-properties-common" "ufw")
+PACKAGES=("curl" "git" "wget" "software-properties-common" "apt-transport-https")
 
 # USERS_LIST: Define the list of users to manage (used for creating and managing permissions).
 USERS_LIST=("ubuntu")

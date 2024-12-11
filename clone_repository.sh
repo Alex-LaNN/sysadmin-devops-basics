@@ -42,7 +42,7 @@ fi
 # Copy 'config.sh' and 'functions.sh' to the repository directory
 sudo cp ./config.sh "$REPOSITORY/" || error_exit "Failed to copy 'config.sh' to directory $REPOSITORY."
 sudo cp ./functions.sh "$REPOSITORY/" || error_exit "Failed to copy 'functions.sh' to directory $REPOSITORY."
-sudo cp .env "$REPOSITORY/.env.production" || error_exit "Failed to copy '.env' to directory $REPOSITORY."
+sudo mv .env "$REPOSITORY/.env.production" || error_exit "Failed to copy '.env' to directory $REPOSITORY."
 
 cd "$REPOSITORY" || error_exit "Failed to change directory $REPOSITORY."
 
