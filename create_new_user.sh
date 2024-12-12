@@ -95,8 +95,8 @@ check_sudo_group() {
 
 # Checking for the existence of the 'authorized_keys' file
 check_authorized_keys_file() {
-    if [[ ! -f "$HOMEDIR/.ssh/authorized_keys" ]]; then
-        error_exit "File 'authorized_keys' not found in $HOMEDIR/.ssh."
+    if [[ ! -f "$ROOTDIR/.ssh/authorized_keys" ]]; then
+        error_exit "File 'authorized_keys' not found in $ROOTDIR/.ssh."
     fi
 }
 
@@ -154,7 +154,7 @@ sudo useradd -m -s /bin/bash "$new_username" || error_exit "Failed to create use
 
 # Creating an SSH directory and copying keys
 sudo mkdir -p /home/"$new_username"/.ssh || error_exit "Failed to create .ssh directory."
-sudo install -m 600 "$HOMEDIR/.ssh/authorized_keys" "/home/$new_username/.ssh/authorized_keys" || error_exit "Failed to copy authorized_keys."
+sudo install -m 600 "$ROOTDIR/.ssh/authorized_keys" "/home/$new_username/.ssh/authorized_keys" || error_exit "Failed to copy authorized_keys."
 
 # Setting permissions on SSH directory
 sudo chown -R "$new_username":"$new_username" /home/"$new_username"/.ssh || error_exit "Failed to set ownership on .ssh."

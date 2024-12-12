@@ -8,6 +8,7 @@
 # - This file should be sourced using `source ./config.sh` at the beginning of other scripts.
 #
 # Variables:
+# - ROOTDIR: Sets the root directory for the application.
 # - HOMEDIR: Stores the home working directory.
 # - LOGFILE: Path to the log file for deployment progress and errors.
 # - REPOSITORY: Name of the repository being deployed.
@@ -22,6 +23,9 @@
 # Notes:
 # - The variables defined here are used throughout all deployment-related scripts.
 # - Ensure external scripts (REQUIRED_SCRIPTS) are accessible during the deployment.
+
+# ROOTDIR: Sets the root directory for the application.
+ROOTDIR="/home/ubuntu"
 
 # HOMEDIR: Store the current working directory as the home directory for the deployment.
 HOMEDIR=$(pwd)
@@ -47,15 +51,13 @@ PACKAGES=("curl" "git" "wget" "software-properties-common" "apt-transport-https"
 # USERS_LIST: Define the list of users to manage (used for creating and managing permissions).
 USERS_LIST=("ubuntu")
 
-# Links to additional files
-#CLONELINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/clone_repository.sh"
+# Links to additional scripts
 CREATEUSERLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/create_new_user.sh"
 DOCKERLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/docker_setup.sh"
 ENVIRONMENTLINK="https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/environment_setup.sh"
 
 # Array of all needed scripts
 REQUIRED_SCRIPTS=(
-#  "$CLONELINK"
   "$CREATEUSERLINK"
   "$DOCKERLINK"
   "$ENVIRONMENTLINK"
