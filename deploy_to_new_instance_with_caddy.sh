@@ -132,7 +132,7 @@ prepare_environment() {
 
 # Step 5: Start Docker Compose
 start_docker_compose() {
-  log "Starting Docker Compose..."
+  log "=== Starting Docker Compose..."
   sudo --preserve-env docker-compose --env-file .env.production -f docker-compose.prod.caddy.yml up -d --build || error_exit "Failed to start Docker Compose."
 }
 

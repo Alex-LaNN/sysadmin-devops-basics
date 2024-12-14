@@ -52,9 +52,14 @@ update_config_with_new_user() {
         return 0
     fi
 
-    # Append the new user to the config file
-    echo "USERS_LIST+=(\"$new_user\")" >> "$config_file"
-    log "Added '$new_user' to the USERS_LIST in $config_file."
+    # Add a new user to the 'USERS_LIST' list of the configuration file
+    sed -i "/^USERS_LIST=/ s/)/ \"$new_user\")/" "$config_file"
+    
+    if [ $? -eq 0 ]; then
+        log "Successfully added '$new_user' to the USERS_LIST in $config_file."
+    else
+        error_exit "Failed to update USERS_LIST in $config_file."
+    fi
 }
 
 # Checking the availability of required commands

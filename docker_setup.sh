@@ -64,6 +64,10 @@ if ! dpkg -l | grep -qw docker-ce; then
     # Adding users to the 'docker' group
     for user in "${USERS_LIST[@]}"; do
         sudo usermod -aG docker "$user" && log "Added $user to docker group."
+        if [ "$USER" == "$user" ]; then
+            log "Switching current session to docker group."
+            newgrp docker
+        fi
     done
 
     # Enabling and running Docker
